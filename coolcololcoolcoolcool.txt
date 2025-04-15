@@ -1,0 +1,357 @@
+prac1: Program to implement password salting and 
+hashing to create secure password. 
+Code:
+!pip install bcrypt
+import bcrypt
+pwd = input('Enter the Password:')
+falsepwd = 'FalsePassword'
+bytepwd = pwd.encode('UTF-8')
+bytefpwd = falsepwd.encode('UTF-8')
+# Generate Salt
+mySalt = bcrypt.gensalt()
+# Hash Password
+hash_val = bcrypt.hashpw(bytepwd, mySalt)
+print('Hashed password:', hash_val)
+print('Matching hashed password with entered password:', bcrypt.checkpw(bytepwd, hash_val))
+print('Matching hashed password with false password:', bcrypt.checkpw(bytefpwd, hash_val))
+
+prac2: Program to implement following Classical ciphers. 
+   a)Ceaser Cipher  b)Vigenere Cipher c)Affine Cipher 
+1A code:
+def encrypt_words(plain_text, key):
+    cipher_text = ''
+    for word in plain_text:
+        for i in word:
+            if i.isupper():
+                val = ord(i) - 65
+                enc_word = chr(65 + (val + key) % 26)
+            else:
+                val = ord(i) - 97
+                enc_word = chr(97 + (val + key) % 26)
+            cipher_text += enc_word
+    print('Encrypted Text:', cipher_text)
+    return cipher_text
+
+def decrypt_words(cipher_text, key):
+    plain_text = ''
+    for word in cipher_text:
+        for i in word:
+            if i.isupper():
+                val = ord(i) - 65
+                dec_word = chr(65 + (val - key) % 26)
+            else:
+                val = ord(i) - 97
+                dec_word = chr(97 + (val - key) % 26)
+            plain_text += dec_word
+    print('Decrypted Text:', plain_text)
+
+plain_text = input('Enter the plain text to be encrypted & decrypted: ').split()
+key = int(input('Enter the key for Shift Cipher: '))
+cipher_text = encrypt_words(plain_text, key)
+decrypt_words(cipher_text, key)
+
+2b Code:
+def encrypt_words(plain_text, key):
+    cipher_text = ''
+    n = len(plain_text)
+    key = (key * ((n // len(key)) + 1))[:n]  # repeat and trim key to match plain_text length
+
+    for i in range(n):
+        if plain_text[i].isupper():
+            pi = ord(plain_text[i]) - 65
+            ki = ord(key[i].upper()) - 65
+            ei = (pi + ki) % 26
+            cipher_text += chr(65 + ei)
+        elif plain_text[i].islower():
+            pi = ord(plain_text[i]) - 97
+            ki = ord(key[i].lower()) - 97
+            ei = (pi + ki) % 26
+            cipher_text += chr(97 + ei)
+        else:
+            cipher_text += plain_text[i]  # keep spaces or symbols as is
+    print('Encrypted text:', cipher_text)
+    return cipher_text
+
+def decrypt_words(cipher_text, key):
+    plain_text = ''
+    n = len(cipher_text)
+    key = (key * ((n // len(key)) + 1))[:n]
+
+    for i in range(n):
+        if cipher_text[i].isupper():
+            ei = ord(cipher_text[i]) - 65
+            ki = ord(key[i].upper()) - 65
+            di = (ei - ki + 26) % 26
+            plain_text += chr(65 + di)
+        elif cipher_text[i].islower():
+            ei = ord(cipher_text[i]) - 97
+            ki = ord(key[i].lower()) - 97
+            di = (ei - ki + 26) % 26
+            plain_text += chr(97 + di)
+        else:
+            plain_text += cipher_text[i]
+    print('Decrypted text:', plain_text)
+
+# Driver code
+plain_text = input('Enter the plain text to be encrypted and decrypted: ')
+key = input('Enter the key for Vigenere cipher: ')
+cipher_text = encrypt_words(plain_text, key)
+decrypt_words(cipher_text, key)
+
+2c code:
+def encrypt_words(plain_text, a, b):
+    cipher_text = ''
+    for word in plain_text:
+        for i in word:
+            if i.isupper():
+                val = ord(i) - 65
+                cal = ((a * val) + b) % 26
+                enc_word = chr(65 + cal)
+            else:
+                val = ord(i) - 97
+                cal = ((a * val) + b) % 26
+                enc_word = chr(97 + cal)
+            cipher_text += enc_word
+    print('Encrypted Text:', cipher_text)
+    return cipher_text
+
+def decrypt_words(cipher_text, a, b):
+    plain_text = ''
+    c = 0
+    for i in range(1, 27):
+        if (a * i) % 26 == 1:
+            c = i
+            break
+    for i in cipher_text:
+        if i.isupper():
+            val = ord(i) - 65
+            cal = (c * (val - b)) % 26
+            dec_word = chr(65 + cal)
+        else:
+            val = ord(i) - 97
+            cal = (c * (val - b)) % 26
+            dec_word = chr(97 + cal)
+        plain_text += dec_word
+    print('Decrypted Text:', plain_text)
+
+# Main logic
+plain_text = input('Enter the plain text to be encrypted & decrypted: ').split()
+a = int(input('Enter the key for a: '))
+b = int(input('Enter the key for b: '))
+
+cipher_text = encrypt_words(plain_text, a, b)
+decrypt_words(cipher_text, a, b)
+
+prac 3 :  Program to demonstrate cryptanalysis of Shift Cipher
+Code:
+def cryptanalysis():
+  cipher_text = input('Enter the cipher text for cryptanalysis:')
+  for k in range(26):
+    plain_text=""
+    for letter in cipher_text:
+      if letter =='':
+        plain_text+=letter
+      else:
+       c= ord(letter)-65
+       e = (c-k)%26
+       plain_text+=chr(e+65)
+    print('With key =',k,plain_text)
+cryptanalysis()
+
+prac 4: Write a program to implement the AES algorithm for file encryption and 
+decryption.
+Code:
+!pip install pycryptodome 
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+
+def encrypt_file(input_file, output_file, key):
+
+    with open(input_file, 'rb') as f:
+        data = f.read()
+    cipher = AES.new(key, AES.MODE_CBC)
+    encrypted = cipher.encrypt(pad(data, AES.block_size))
+    with open(output_file, 'wb') as f:
+        f.write(cipher.iv + encrypted)
+
+def decrypt_file(input_file, output_file, key):
+
+    with open(input_file, 'rb') as f:
+        iv = f.read(16)
+        encrypted = f.read()
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    decrypted = unpad(cipher.decrypt(encrypted), AES.block_size)
+    with open(output_file, 'wb') as f:
+        f.write(decrypted)
+
+def main():
+    # Generate a random 16-byte (128-bit) AES key
+    key = get_random_bytes(16)
+
+    input_file = input("Enter the path of the input file to encrypt/decrypt: ").strip()
+
+    encrypt_file(input_file, 'encrypt.txt', key)
+    print(f"File encrypted ")
+
+    decrypt_file('encrypt.txt', 'decrypt.txt', key)
+    print(f"File decrypted ")
+
+if __name__ == "__main__":
+    main()
+
+
+prac 5: Write a program to implement steganography for hiding messages inside the 
+image file. 
+Code: for PYTHON IDLE
+from stegano import lsb
+
+# Hiding the message in the image
+steg = lsb.hide('flower.png', 'vaishali')
+steg.save('flower1.png')
+
+# Revealing the message from the new image
+msg = lsb.reveal('flower1.png')  # Corrected here!
+
+print("Hidden message =", msg)
+
+CODE== FOR GOOGLE COLAB
+from stegano import lsb
+from google.colab import files
+# Upload image (must be .png)
+print("Upload a PNG image (e.g., flower.png)")
+uploaded = files.upload()
+# Get the filename
+image_filename = list(uploaded.keys())[0]
+# Hide the message
+steg = lsb.hide(image_filename, "Flower is blue")
+steg_output = "stegno_image.png"
+steg.save(steg_output)
+# Reveal the message
+msg = lsb.reveal(steg_output)
+print("Hidden Message:", msg)
+# Optional: download the stego image
+files.download(steg_output)
+
+Prac6:  Write a program to implement HMAC signatures.
+Code:
+import hmac
+import hashlib
+import secrets
+# Initial sent message
+sent_msg = input("Enter message: ")
+key = secrets.token_bytes(100)
+s_md_1 = hmac.new(key=key, msg=sent_msg.encode(), digestmod=hashlib.md5)
+init_msg_digest = s_md_1.hexdigest()
+# Received message
+received = sent_msg
+r_md_1 = hmac.new(key=key, msg=received.encode(), digestmod=hashlib.md5)
+recv_msg_digest = r_md_1.hexdigest()
+# Comparing sent and received message
+print('---- Before Tampering ----')
+print("Is the message received without any tampering?:",
+      hmac.compare_digest(init_msg_digest, recv_msg_digest))
+# Tampered message
+tampered_msg = sent_msg[1:]  # Just removing the first character to simulate tampering
+md_2 = hmac.new(key=key, msg=tampered_msg.encode(), digestmod=hashlib.md5)
+tampered_msg_digest = md_2.hexdigest()
+# Comparing after tampering
+print('---- After Tampering ----')
+print("Is the message received without any tampering?:",
+      hmac.compare_digest(init_msg_digest, tampered_msg_digest))
+
+
+Prac 7 : Write a program to implement. 
+               a)Elgamal Algorithm 
+               b)Euclidean Algorithm 
+Code:
+def generate_e2():
+    return e1**d % p
+def generate_c1():
+    return e1**r % p
+def generate_c2():
+    return (pt * e2**r) % p
+def encryption():
+    return (c1, c2)
+def decryption():
+    temp = c1**d % p
+    temp_inv = None
+    for i in range(1, p):
+        if (temp * i) % p == 1:
+            temp_inv = i
+            break
+    dpt = (c2 * temp_inv) % p
+    return dpt
+# Inputs
+p = int(input('Enter 1st part of public key (prime p): '))
+e1 = int(input('Enter 2nd part of public key (primitive root e1): '))
+d = int(input('Enter a private key (d): '))
+r = int(input('Enter a random integer key (r): '))
+pt = int(input('Enter the plain text (pt): '))
+# Key and Cipher Generation
+e2 = generate_e2()
+c1 = generate_c1()
+c2 = generate_c2()
+# Output
+print('Encrypted Text:', encryption())
+print('Decrypted Text:', decryption())
+
+7b Code:
+def gcd (a,b):
+  temp = 0
+  while(1):
+    temp = a%b
+    if (temp == 0):
+      return b
+    a = b
+    b = temp
+
+a = int(input('Enter a value of a:'))
+b = int(input('Enter a value of b:'))
+print('GCD of',a,b,'is',gcd (a,b))
+
+
+prac 8 : Program to implement RSA Algorithm. 
+Code:
+import math
+def gcd(e,phi):
+  temp = 0
+  while(1):
+    temp = e%phi
+    if (temp ==0):
+      return phi
+    e = phi
+    phi = temp
+p=3
+q=7
+n = p*q
+e = 2
+phi = (p-1)*(q-1)
+while (e < phi):
+  #e must be co-prime of phi
+  #smaller than phi
+  if (gcd(e,phi)==1):
+    break;
+  else:
+    e=e+1
+d=0
+for i in range(1,phi):
+  if (e*i)%phi==1:
+    d=i
+    break
+msg = 12.0
+print("Message data = ", msg)
+# Encryption c = (msg^ e) % n
+c = pow(msg, e)
+c = math.fmod(c, n)
+print("Encrypted data = ", c)
+# Decryption m = (c^ d) % n
+m = pow(c, d)
+m = math.fmod(m, n)
+print("Original Message Sent = ",m)
+
+ 
+
+
+
+
